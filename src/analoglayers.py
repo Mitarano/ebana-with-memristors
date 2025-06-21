@@ -238,12 +238,13 @@ class DenseLayer(TwoTerminals):
         super()._generate_net_names()
 
     def call(self, circuit):
+        g = np.array([[memristor.W for memristor in row] for row in self.w])
         circuit.subcircuit(
             DenseResistorMatrix(
                 self.name,
                 self.in_subcircuit_net_names,
                 self.out_subcircuit_net_names,
-                np.round(1 / self.w, 4),
+                np.round(1 / g, 4),
             )
         )
         circuit.X(self.name, self.name, *self.in_net_names, *self.out_net_names)

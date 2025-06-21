@@ -5,6 +5,8 @@
 import numpy as np
 import pickle
 
+from src.memristors import VTEAMMemristor
+
 #######################################################################
 #                          optimizer methods                          #
 #######################################################################
@@ -47,12 +49,17 @@ class SGDMomentum():
 
 
 class Adam():
-    def __init__(self, model, beta=0.001, gamma_v=0.5, gamma_s=0.5, eps=1e-8):
+    def __init__(self, model, beta=0.001, gamma_v=0.5, gamma_s=0.5, eps=1e-8, V_const=1.0, dt_scaling=5e3,
+                 modulation_mode="PAM", frequency=None):
         self.model = model
         self.beta = beta
         self.gamma_v = gamma_v
         self.gamma_s = gamma_s
         self.eps = eps
+        self.V_const = V_const
+        self.dt_scaling = dt_scaling
+        self.modulation_mode = modulation_mode
+        self.frequency = frequency
         self.k = 0
         self.c, self.v, self.s= {}, {}, {}
         for layer in self.model.computation_graph:
@@ -62,7 +69,7 @@ class Adam():
                     self.s[layer.name] = np.zeros(layer.shape)
                 elif layer.layer_type in ['diode_layer', 'bias_voltage_layer']:
                     self.c[layer.name] = np.zeros(layer.shape)
-
+              
     def step(self):
         self.k += 1
         for layer in self.model.computation_graph:
@@ -76,13 +83,26 @@ class Adam():
                     self.s[layer.name] = self.gamma_s * self.s[layer.name] + (1 - self.gamma_s) * (update ** 2)
                     self.s[layer.name] = self.s[layer.name] / (1 - self.gamma_s ** self.k)
 
-                    new_weights = layer.w - layer.lr * self.v[layer.name] / (np.sqrt(self.s[layer.name]) + self.eps)
-                    layer.w = layer.initializer.clip_conductances(new_weights)
+                    dt_update = self.dt_scaling * layer.lr * self.v[layer.name] / (np.sqrt(self.s[layer.name]) + self.eps)
+
+                    for i in range(layer.w.shape[0]):
+                        for j in range(layer.w.shape[1]):
+
+                            if self.modulation_mode == "PWM":
+                                V_applied = -self.V_const if dt_update[i, j] >= 0 else self.V_const
+                                dt_pulse = abs(dt_update[i, j]) / (abs(V_applied))
+
+                            elif self.modulation_mode == "PAM":
+                                dt_pulse = 1 / self.frequency
+                                V_applied = -dt_update[i, j] / dt_pulse
+                            
+                            if isinstance(layer.w[i, j], VTEAMMemristor):
+                                V_applied = -V_applied
+
+                            layer.w[i, j].update_state(V_applied, dt_pulse)
 
                 elif layer.layer_type in ['diode_layer', 'bias_voltage_layer']:
                     layer.bias_voltage -=  1e5 * layer.voltage_drops
-                    # print(layer.bias_voltage)
-                    #pass
 
     def save_state(self, filepath):
         optimizer_state = {}

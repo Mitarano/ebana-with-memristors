@@ -37,8 +37,8 @@ class MSE:
         return prediction.reshape(1, -1)
 
     def verify_result(self, target, prediction):
-        #c = np.product(np.equal(target, np.round(prediction, 0)), axis=1)
-        c = np.product(np.equal(target>=self.output_midpoint, prediction>=self.output_midpoint), axis=1)
+        #c = np.prod(np.equal(target, np.round(prediction, 0)), axis=1)
+        c = np.prod(np.equal(target>=self.output_midpoint, prediction>=self.output_midpoint), axis=1)
         return c
 
 class BCE:
@@ -65,7 +65,7 @@ class BCE:
         return prob
 
     def verify_result(self, target, prediction):
-        c = np.product(np.equal(target, np.round(prediction, 0)), axis=1)
+        c = np.prod(np.equal(target, np.round(prediction, 0)), axis=1)
         return c
 
 class CrossEntropyLoss:
@@ -98,5 +98,5 @@ class CrossEntropyLoss:
         a = np.argmax(prediction, axis=1)
         b = np.zeros((a.size, a.max()+1), dtype=int)
         b[np.arange(a.size),a] = 1
-        c = np.product(np.equal(target, b), axis=1)
+        c = np.prod(np.equal(target, b), axis=1)
         return c

@@ -1,0 +1,43 @@
+{
+  "dataset": {
+    "type": "BreastCancer",
+    "scale": 0.5,
+    "split_size": 0,
+    "output_shift": -0.5,
+    "output_midpoint": 0.0,
+    "batch_size": 398,
+    "shuffle": false
+  },
+  "model": {
+    "hidden_1_units": 16,
+    "bias_p": 1,
+    "bias_n": -1,
+    "weight_initializer": {
+      "init_type": "random_uniform",
+      "params": {
+        "U": 8e-4,
+        "L": 1e-5,
+        "g_max": 1e-2,
+        "g_min": 1e-5,
+        "memristor": "linear"
+      }
+    },
+    "diode_params": {
+        "VTH": 0.3,
+        "RON": 1.0
+    },
+    "amp_params": {
+      "shift": 0,
+      "gain": 4
+    },
+    "training": {
+      "beta": 1e-06,
+      "lr": 3e-05,
+      "dt_scaling": 1,
+      "epochs": 50,
+      "modulation_mode": "PWM",
+      "V_const": 1.0
+    },
+    "load_weights_path": "weights/breast_cancer_1e2_1e5.npy"
+  }
+}
