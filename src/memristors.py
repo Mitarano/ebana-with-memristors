@@ -76,6 +76,8 @@ class YacopcicMemristor:
     #        return 1
 
     def f_n(self, x):
+        if x < self.x_on:
+            return 0
         if x <= (1 - self.x_n):
             return np.exp(self.alpha_n * (x + self.x_n - 1)) * (x - self.x_on) / (self.x_n - self.x_on)
         else:
