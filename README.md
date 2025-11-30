@@ -9,4 +9,4 @@ users can easily experiment with different network architectures and evaluate
 the tradeoffs that exist in the design space.
 
 For more information on the Equilibrium Propagation algorithm, please see this
-paper: https://arxiv.org/abs/1602.05179"
+paper: https://arxiv.org/abs/1602.05179
